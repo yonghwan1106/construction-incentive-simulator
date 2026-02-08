@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>지역 상생형 용적률 인센티브 시뮬레이터</title>
+<meta name="description" content="민간 건설공사의 지역경제 파급효과를 직접 시뮬레이션해 보세요. 지역업체 참여비율에 따른 용적률 인센티브와 경제효과를 확인할 수 있습니다.">
+<meta property="og:title" content="지역 상생형 용적률 인센티브 시뮬레이터">
+<meta property="og:description" content="민간 건설공사의 지역경제 파급효과를 직접 시뮬레이션해 보세요.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='40' width='25' height='55' rx='2' fill='%231B3A5C'/%3E%3Crect x='55' y='20' width='25' height='75' rx='2' fill='%233B82F6'/%3E%3Crect x='26' y='48' width='6' height='6' rx='1' fill='%2393C5FD'/%3E%3Crect x='26' y='60' width='6' height='6' rx='1' fill='%2393C5FD'/%3E%3Crect x='33' y='48' width='6' height='6' rx='1' fill='%2393C5FD'/%3E%3Crect x='33' y='60' width='6' height='6' rx='1' fill='%2393C5FD'/%3E%3Crect x='61' y='28' width='6' height='6' rx='1' fill='white'/%3E%3Crect x='61' y='40' width='6' height='6' rx='1' fill='white'/%3E%3Crect x='61' y='52' width='6' height='6' rx='1' fill='white'/%3E%3Crect x='68' y='28' width='6' height='6' rx='1' fill='white'/%3E%3Crect x='68' y='40' width='6' height='6' rx='1' fill='white'/%3E%3Crect x='68' y='52' width='6' height='6' rx='1' fill='white'/%3E%3C/svg%3E">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,154 +39,346 @@ tailwind.config = {
 * { font-family: 'Noto Sans KR', sans-serif; }
 html { scroll-behavior: smooth; }
 
-/* Slider styling */
+/* ===== Animated gradient header ===== */
+@keyframes headerGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animated-header {
+  background: linear-gradient(135deg, #0F2642, #1B3A5C, #1E4976, #1B3A5C, #0F2642);
+  background-size: 300% 300%;
+  animation: headerGradient 8s ease infinite;
+}
+
+/* ===== Floating particles ===== */
+@keyframes float1 { 0%,100%{ transform: translateY(0) rotate(0deg); } 50%{ transform: translateY(-20px) rotate(5deg); } }
+@keyframes float2 { 0%,100%{ transform: translateY(0) rotate(0deg); } 50%{ transform: translateY(-15px) rotate(-3deg); } }
+@keyframes float3 { 0%,100%{ transform: translateY(0) rotate(0deg); } 50%{ transform: translateY(-25px) rotate(8deg); } }
+.particle { position: absolute; opacity: 0.08; pointer-events: none; }
+.particle-1 { animation: float1 6s ease-in-out infinite; }
+.particle-2 { animation: float2 8s ease-in-out infinite 1s; }
+.particle-3 { animation: float3 7s ease-in-out infinite 2s; }
+.particle-4 { animation: float1 9s ease-in-out infinite 3s; }
+.particle-5 { animation: float2 5s ease-in-out infinite 0.5s; }
+
+/* ===== Sticky nav ===== */
+.sticky-nav {
+  position: fixed; top: -70px; left: 0; right: 0; z-index: 50;
+  transition: top 0.3s ease;
+  backdrop-filter: blur(12px);
+  background: rgba(27,58,92,0.92);
+}
+.sticky-nav.visible { top: 0; }
+.nav-link { position: relative; transition: color 0.2s; }
+.nav-link::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px;
+  background: #3B82F6; transition: width 0.3s;
+}
+.nav-link.active { color: #60A5FA; }
+.nav-link.active::after { width: 100%; }
+
+/* ===== Slider styling ===== */
 input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 10px;
-  border-radius: 5px;
-  outline: none;
-  transition: background 0.2s;
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 10px; border-radius: 5px;
+  outline: none; transition: background 0.2s; position: relative;
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #1B3A5C;
-  cursor: pointer;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  -webkit-appearance: none; appearance: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #1B3A5C; cursor: pointer;
+  border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: transform 0.15s;
 }
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 input[type="range"]::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #1B3A5C;
-  cursor: pointer;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #1B3A5C; cursor: pointer;
+  border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.slider-markers { position: relative; height: 12px; margin-top: 4px; }
+.slider-marker {
+  position: absolute; top: 0; width: 2px; height: 8px;
+  background: #94A3B8; border-radius: 1px; transform: translateX(-50%);
+}
+.slider-marker-label {
+  position: absolute; top: 10px; font-size: 10px; color: #94A3B8;
+  transform: translateX(-50%); white-space: nowrap;
 }
 
-/* Fade-in animation */
-.fade-section {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-.fade-section.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* ===== Fade-in animation ===== */
+.fade-section { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
+.fade-section.visible { opacity: 1; transform: translateY(0); }
 
-/* Result card animation */
-.result-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+/* ===== Glassmorphism result card ===== */
+.glass-card {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s;
 }
-.result-card:hover {
+.glass-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(27,58,92,0.15);
 }
+.result-card { transition: transform 0.2s, box-shadow 0.2s; }
+.result-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(27,58,92,0.15); }
 
-/* Circulation diagram */
-.circ-node {
-  transition: transform 0.3s, box-shadow 0.3s;
+/* ===== Gradient border on hover ===== */
+.gradient-border-hover {
+  position: relative; border: 2px solid transparent;
+  background-clip: padding-box; transition: all 0.3s;
 }
-.circ-node:hover {
-  transform: scale(1.05);
+.gradient-border-hover::before {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit;
+  background: linear-gradient(135deg, #3B82F6, #06B6D4, #8B5CF6);
+  z-index: -1; opacity: 0; transition: opacity 0.3s;
 }
+.gradient-border-hover:hover::before { opacity: 1; }
+.gradient-border-hover:hover { border-color: transparent; }
 
-/* Gauge */
-.gauge-fill {
-  transition: stroke-dashoffset 0.8s ease-in-out;
-}
+/* ===== Circulation diagram ===== */
+.circ-node { transition: transform 0.3s, box-shadow 0.3s; }
+.circ-node:hover { transform: scale(1.05); }
 
-/* Table highlight */
-.tier-row {
-  transition: background-color 0.3s;
-}
-.tier-row.active-tier {
-  background-color: #DBEAFE;
-  font-weight: 600;
-}
+/* ===== Gauge ===== */
+.gauge-fill { transition: stroke-dashoffset 0.8s ease-in-out; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
+/* ===== Table highlight ===== */
+.tier-row { transition: background-color 0.3s; }
+.tier-row.active-tier { background-color: #DBEAFE; font-weight: 600; }
+
+/* ===== Wave divider ===== */
+.wave-divider { width: 100%; overflow: hidden; line-height: 0; }
+.wave-divider svg { position: relative; display: block; width: calc(100% + 1.3px); }
+.wave-divider-flip { transform: rotate(180deg); }
+
+/* ===== Before/After section ===== */
+.before-card { background: linear-gradient(135deg, #374151, #4B5563); }
+.after-card { background: linear-gradient(135deg, #1B3A5C, #2563EB); }
+
+/* ===== Progress bar ===== */
+.progress-bar-track { background: #E2E8F0; border-radius: 999px; height: 8px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease-out; }
+
+/* ===== Count-up on scroll ===== */
+.count-up { display: inline-block; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1B3A5C; color: white; padding: 12px 24px; border-radius: 12px;
+  font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s ease;
+  z-index: 100; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== Preset buttons ===== */
+.preset-btn {
+  flex-shrink: 0; padding: 10px 16px; border-radius: 12px;
+  border: 2px solid #E2E8F0; background: white;
+  transition: all 0.2s; cursor: pointer; text-align: left;
+  min-width: 180px;
+}
+.preset-btn:hover { border-color: #3B82F6; background: #EFF6FF; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
+.preset-btn.active { border-color: #3B82F6; background: #DBEAFE; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; height: 6px; }
 ::-webkit-scrollbar-track { background: #F1F5F9; }
 ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #64748B; }
 
-/* Pulse animation for active tier */
-@keyframes pulse-border {
-  0%, 100% { border-color: #3B82F6; }
-  50% { border-color: #93C5FD; }
-}
-.pulse-border {
-  animation: pulse-border 2s infinite;
-}
+/* ===== Pulse ===== */
+@keyframes pulse-border { 0%,100%{ border-color: #3B82F6; } 50%{ border-color: #93C5FD; } }
+.pulse-border { animation: pulse-border 2s infinite; }
 
-/* Arrow animation for circulation */
-@keyframes flow {
-  0% { stroke-dashoffset: 20; }
-  100% { stroke-dashoffset: 0; }
-}
-.flow-arrow {
-  stroke-dasharray: 10 10;
-  animation: flow 1s linear infinite;
-}
+/* ===== SVG flow arrow ===== */
+@keyframes flowDash { 0% { stroke-dashoffset: 24; } 100% { stroke-dashoffset: 0; } }
+.flow-arrow { stroke-dasharray: 8 4; animation: flowDash 1s linear infinite; }
 
-/* Mobile touch improvements */
+/* ===== Mobile floating CTA ===== */
+.mobile-cta {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 40; display: none;
+  background: linear-gradient(135deg, #1B3A5C, #2563EB);
+  color: white; padding: 12px 28px; border-radius: 50px;
+  font-weight: 600; font-size: 14px;
+  box-shadow: 0 8px 24px rgba(27,58,92,0.4);
+  transition: all 0.3s; text-decoration: none;
+}
+.mobile-cta:hover { transform: translateX(-50%) translateY(-2px); }
+
+/* ===== Preset scroll on mobile ===== */
+.preset-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.preset-scroll > * { scroll-snap-align: start; }
+.preset-scroll::-webkit-scrollbar { height: 4px; }
+
 @media (max-width: 768px) {
-  input[type="range"]::-webkit-slider-thumb {
-    width: 34px;
-    height: 34px;
-  }
-  input[type="range"] {
-    height: 12px;
-  }
+  input[type="range"]::-webkit-slider-thumb { width: 34px; height: 34px; }
+  input[type="range"] { height: 12px; }
+  .mobile-cta { display: block; }
+}
+
+/* ===== Stat counter in header ===== */
+.stat-counter {
+  display: inline-flex; flex-direction: column; align-items: center;
+  padding: 16px 20px; border-radius: 16px;
+  background: rgba(255,255,255,0.08); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+  min-width: 140px;
+}
+.stat-number { font-size: 28px; font-weight: 800; color: white; line-height: 1.2; }
+.stat-label { font-size: 12px; color: #93C5FD; margin-top: 4px; text-align: center; line-height: 1.3; }
+
+@media (max-width: 640px) {
+  .stat-number { font-size: 22px; }
+  .stat-counter { padding: 12px 14px; min-width: 100px; }
+  .stat-label { font-size: 10px; }
+}
+
+/* ===== Policy background cards ===== */
+.policy-card {
+  border-radius: 16px; padding: 28px 24px; border: 1px solid #E2E8F0;
+  background: white; transition: transform 0.2s, box-shadow 0.2s;
+}
+.policy-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(27,58,92,0.1); }
+.policy-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px; font-size: 28px;
 }
 </style>
 </head>
 <body class="bg-white text-text-main">
 
-<!-- Header Banner -->
-<header class="bg-navy text-white">
-  <div class="bg-navy-dark/50 border-b border-white/10">
+<!-- ===== Toast notification ===== -->
+<div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+<!-- ===== Mobile floating CTA ===== -->
+<a href="#calculator" class="mobile-cta" id="mobileCta" aria-label="계산기로 이동">
+  <span style="margin-right:6px">&#9650;</span> 계산기로 이동
+</a>
+
+<!-- ===== Sticky Navigation ===== -->
+<nav class="sticky-nav" id="stickyNav" aria-label="메인 네비게이션">
+  <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
+    <span class="text-white font-bold text-sm hidden sm:block">용적률 인센티브 시뮬레이터</span>
+    <div class="flex items-center gap-1 sm:gap-4 overflow-x-auto text-sm w-full sm:w-auto justify-center sm:justify-end">
+      <a href="#calculator" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="calculator">계산기</a>
+      <a href="#comparison" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="comparison">비교</a>
+      <a href="#beforeafter" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="beforeafter">전후비교</a>
+      <a href="#impact" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="impact">효과</a>
+      <a href="#tiertable" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="tiertable">구간표</a>
+      <a href="#policy" class="nav-link text-white/80 hover:text-white px-2 py-1 whitespace-nowrap" data-section="policy">제안배경</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== Header Banner ===== -->
+<header class="animated-header text-white relative overflow-hidden">
+  <!-- Floating particles (building/city shapes) -->
+  <div class="particle particle-1" style="top:15%;left:8%">
+    <svg width="40" height="60" viewBox="0 0 40 60" fill="white"><rect x="5" y="10" width="30" height="50" rx="2"/><rect x="10" y="16" width="6" height="6" rx="1" fill="#1B3A5C"/><rect x="24" y="16" width="6" height="6" rx="1" fill="#1B3A5C"/><rect x="10" y="28" width="6" height="6" rx="1" fill="#1B3A5C"/><rect x="24" y="28" width="6" height="6" rx="1" fill="#1B3A5C"/></svg>
+  </div>
+  <div class="particle particle-2" style="top:25%;right:12%">
+    <svg width="50" height="70" viewBox="0 0 50 70" fill="white"><rect x="5" y="5" width="20" height="65" rx="2"/><rect x="25" y="25" width="20" height="45" rx="2"/><rect x="9" y="12" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="9" y="24" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="30" y="32" width="5" height="5" rx="1" fill="#1B3A5C"/></svg>
+  </div>
+  <div class="particle particle-3" style="top:60%;left:5%">
+    <svg width="35" height="50" viewBox="0 0 35 50" fill="white"><polygon points="17.5,2 35,20 35,50 0,50 0,20"/><rect x="8" y="26" width="6" height="6" rx="1" fill="#1B3A5C"/><rect x="21" y="26" width="6" height="6" rx="1" fill="#1B3A5C"/></svg>
+  </div>
+  <div class="particle particle-4" style="top:50%;right:6%">
+    <svg width="30" height="55" viewBox="0 0 30 55" fill="white"><rect x="2" y="8" width="26" height="47" rx="2"/><rect x="7" y="14" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="18" y="14" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="7" y="26" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="18" y="26" width="5" height="5" rx="1" fill="#1B3A5C"/></svg>
+  </div>
+  <div class="particle particle-5" style="top:70%;left:50%">
+    <svg width="45" height="40" viewBox="0 0 45 40" fill="white"><rect x="0" y="15" width="20" height="25" rx="2"/><rect x="25" y="5" width="20" height="35" rx="2"/><rect x="4" y="20" width="5" height="5" rx="1" fill="#1B3A5C"/><rect x="30" y="12" width="5" height="5" rx="1" fill="#1B3A5C"/></svg>
+  </div>
+
+  <div class="bg-black/20 border-b border-white/10">
     <div class="max-w-6xl mx-auto px-4 py-2 text-center">
       <p class="text-xs sm:text-sm tracking-wide text-blue-200">건설업 생산체계 정책 아이디어 공모전 &mdash; 보조 자료</p>
     </div>
   </div>
-  <div class="max-w-6xl mx-auto px-4 py-8 sm:py-12 text-center">
-    <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5 text-xs sm:text-sm text-blue-200">
+  <div class="max-w-6xl mx-auto px-4 py-10 sm:py-14 text-center relative z-10">
+    <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5 text-xs sm:text-sm text-blue-200 backdrop-blur-sm border border-white/10">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       인터랙티브 정책 시뮬레이션
     </div>
     <h1 class="text-2xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
       지역 상생형 용적률 인센티브<br class="hidden sm:block"> 시뮬레이터
     </h1>
-    <p class="text-base sm:text-lg text-blue-200 max-w-2xl mx-auto leading-relaxed">
+    <p class="text-base sm:text-lg text-blue-200 max-w-2xl mx-auto leading-relaxed mb-8">
       민간 건설공사의 지역경제 파급효과를 직접 확인해 보세요
     </p>
-    <div class="mt-6 flex justify-center gap-4">
-      <a href="#calculator" class="bg-point hover:bg-point-light text-white font-semibold px-6 py-2.5 rounded-lg transition text-sm sm:text-base">시뮬레이션 시작</a>
-      <a href="#comparison" class="border border-white/30 hover:bg-white/10 text-white px-6 py-2.5 rounded-lg transition text-sm sm:text-base">현황 비교</a>
+
+    <!-- Header stat counters -->
+    <div class="flex flex-wrap justify-center gap-3 sm:gap-5 mb-8">
+      <div class="stat-counter">
+        <div class="stat-number"><span class="count-up" data-target="118">0</span><span style="font-size:16px;font-weight:400;color:#93C5FD">/228</span></div>
+        <div class="stat-label">시군구 소멸위험</div>
+      </div>
+      <div class="stat-counter">
+        <div class="stat-number"><span class="count-up" data-target="70">0</span><span style="font-size:16px;font-weight:400;color:#93C5FD">%+</span></div>
+        <div class="stat-label">건설업 역외 유출</div>
+      </div>
+      <div class="stat-counter">
+        <div class="stat-number"><span class="count-up" data-target="43">0</span><span style="font-size:16px;font-weight:400;color:#93C5FD">배</span></div>
+        <div class="stat-label">인센티브 최대 격차</div>
+      </div>
+    </div>
+
+    <div class="flex justify-center gap-4">
+      <a href="#calculator" class="bg-point hover:bg-point-light text-white font-semibold px-6 py-2.5 rounded-lg transition text-sm sm:text-base shadow-lg shadow-blue-500/25">시뮬레이션 시작</a>
+      <a href="#comparison" class="border border-white/30 hover:bg-white/10 text-white px-6 py-2.5 rounded-lg transition text-sm sm:text-base backdrop-blur-sm">현황 비교</a>
     </div>
   </div>
 </header>
 
-<!-- Section 1: Calculator -->
+<!-- Wave divider: header to calculator -->
+<div class="wave-divider" style="margin-top:-1px; background: linear-gradient(135deg, #0F2642, #1B3A5C);">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="white">
+    <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 1: Calculator ===== -->
 <section id="calculator" class="py-12 sm:py-16 bg-white fade-section">
   <div class="max-w-6xl mx-auto px-4">
     <div class="text-center mb-10">
       <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 01</span>
       <h2 class="text-2xl sm:text-3xl font-bold text-navy">인센티브 계산기</h2>
       <p class="text-text-sub mt-2">슬라이더를 조작하여 지역업체 참여비율에 따른 인센티브를 확인하세요</p>
+    </div>
+
+    <!-- Preset Scenarios -->
+    <div class="mb-8">
+      <h3 class="text-sm font-bold text-navy mb-3 flex items-center gap-2">
+        <svg class="w-4 h-4 text-point" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        시나리오 프리셋
+      </h3>
+      <div class="preset-scroll">
+        <button class="preset-btn" onclick="applyPreset(500,250,'midcity',70)" aria-label="안동시 500세대 시나리오 적용">
+          <div class="text-lg mb-1">&#127960;</div>
+          <div class="text-sm font-bold text-navy">안동시 500세대</div>
+          <div class="text-xs text-text-sub mt-1">공사비 500억 | 용적률 250%<br>중소도시 | 참여율 70%</div>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(2000,300,'metro',40)" aria-label="서울 대단지 1000세대 시나리오 적용">
+          <div class="text-lg mb-1">&#127961;</div>
+          <div class="text-sm font-bold text-navy">서울 대단지 1000세대</div>
+          <div class="text-xs text-text-sub mt-1">공사비 2000억 | 용적률 300%<br>광역시 | 참여율 40%</div>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(1200,280,'metro',60)" aria-label="부산 재개발 800세대 시나리오 적용">
+          <div class="text-lg mb-1">&#127959;</div>
+          <div class="text-sm font-bold text-navy">부산 재개발 800세대</div>
+          <div class="text-xs text-text-sub mt-1">공사비 1200억 | 용적률 280%<br>광역시 | 참여율 60%</div>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(150,200,'rural',85)" aria-label="군위군 소규모 100세대 시나리오 적용">
+          <div class="text-lg mb-1">&#127806;</div>
+          <div class="text-sm font-bold text-navy">군위군 소규모 100세대</div>
+          <div class="text-xs text-text-sub mt-1">공사비 150억 | 용적률 200%<br>농어촌 | 참여율 85%</div>
+        </button>
+      </div>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-8">
@@ -195,17 +392,24 @@ input[type="range"]::-moz-range-thumb {
         <!-- Participation Rate Slider -->
         <div class="mb-8">
           <div class="flex justify-between items-center mb-2">
-            <label class="text-sm font-semibold text-text-main">지역업체 참여비율</label>
+            <label class="text-sm font-semibold text-text-main" for="participationRate">지역업체 참여비율</label>
             <div class="flex items-center gap-2">
               <span id="rateValue" class="text-2xl font-bold text-navy">70</span>
               <span class="text-sm text-text-sub font-medium">%</span>
             </div>
           </div>
-          <input type="range" id="participationRate" min="0" max="100" value="70" step="1" class="w-full">
-          <div class="flex justify-between text-xs text-text-sub mt-1.5 px-0.5">
-            <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+          <input type="range" id="participationRate" min="0" max="100" value="70" step="1" class="w-full" aria-label="지역업체 참여비율 슬라이더">
+          <div class="slider-markers">
+            <div class="slider-marker" style="left:30%"></div>
+            <div class="slider-marker-label" style="left:30%">30%</div>
+            <div class="slider-marker" style="left:50%"></div>
+            <div class="slider-marker-label" style="left:50%">50%</div>
+            <div class="slider-marker" style="left:70%"></div>
+            <div class="slider-marker-label" style="left:70%">70%</div>
+            <div class="slider-marker" style="left:80%"></div>
+            <div class="slider-marker-label" style="left:80%">80%</div>
           </div>
-          <div id="tierBadge" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+          <div id="tierBadge" class="mt-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700">
             <span id="tierDot" class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
             <span id="tierText">우수 참여 (70~80%)</span>
           </div>
@@ -213,26 +417,26 @@ input[type="range"]::-moz-range-thumb {
 
         <!-- Construction Cost -->
         <div class="mb-6">
-          <label class="text-sm font-semibold text-text-main block mb-2">총 공사비 (억원)</label>
+          <label class="text-sm font-semibold text-text-main block mb-2" for="totalCost">총 공사비 (억원)</label>
           <div class="relative">
-            <input type="number" id="totalCost" value="500" min="10" max="10000" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white">
+            <input type="number" id="totalCost" value="500" min="10" max="10000" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white" aria-label="총 공사비">
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-sub text-sm">억원</span>
           </div>
         </div>
 
         <!-- Base FAR -->
         <div class="mb-6">
-          <label class="text-sm font-semibold text-text-main block mb-2">기준 용적률 (%)</label>
+          <label class="text-sm font-semibold text-text-main block mb-2" for="baseFAR">기준 용적률 (%)</label>
           <div class="relative">
-            <input type="number" id="baseFAR" value="250" min="50" max="1000" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white">
+            <input type="number" id="baseFAR" value="250" min="50" max="1000" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white" aria-label="기준 용적률">
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-sub text-sm">%</span>
           </div>
         </div>
 
         <!-- Region Type -->
         <div class="mb-4">
-          <label class="text-sm font-semibold text-text-main block mb-2">지역 유형</label>
-          <select id="regionType" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white appearance-none cursor-pointer">
+          <label class="text-sm font-semibold text-text-main block mb-2" for="regionType">지역 유형</label>
+          <select id="regionType" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-point focus:border-point outline-none bg-white appearance-none cursor-pointer" aria-label="지역 유형 선택">
             <option value="metro">광역시 (보정계수 1.0)</option>
             <option value="midcity" selected>중소도시 (보정계수 1.1)</option>
             <option value="rural">농어촌 (보정계수 1.2)</option>
@@ -246,9 +450,9 @@ input[type="range"]::-moz-range-thumb {
 
       <!-- Output Panel -->
       <div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Incentive FAR -->
-          <div class="result-card bg-gradient-to-br from-navy to-navy-light rounded-2xl p-5 sm:p-6 text-white col-span-2">
+          <div class="result-card bg-gradient-to-br from-navy to-navy-light rounded-2xl p-5 sm:p-6 text-white sm:col-span-2 glass-card" style="background:linear-gradient(135deg,#1B3A5C,#2A4F7A);">
             <div class="flex items-center gap-2 mb-2">
               <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
               <span class="text-sm text-blue-200">인센티브 용적률</span>
@@ -262,7 +466,7 @@ input[type="range"]::-moz-range-thumb {
           </div>
 
           <!-- Additional Units -->
-          <div class="result-card bg-white border-2 border-slate-200 rounded-2xl p-5">
+          <div class="result-card glass-card rounded-2xl p-5 gradient-border-hover bg-white">
             <div class="flex items-center gap-1.5 mb-2">
               <svg class="w-4 h-4 text-point" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
               <span class="text-xs text-text-sub font-medium">추가 세대수</span>
@@ -275,7 +479,7 @@ input[type="range"]::-moz-range-thumb {
           </div>
 
           <!-- Additional Revenue -->
-          <div class="result-card bg-white border-2 border-slate-200 rounded-2xl p-5">
+          <div class="result-card glass-card rounded-2xl p-5 gradient-border-hover bg-white">
             <div class="flex items-center gap-1.5 mb-2">
               <svg class="w-4 h-4 text-point" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span class="text-xs text-text-sub font-medium">추가 분양수익</span>
@@ -288,7 +492,7 @@ input[type="range"]::-moz-range-thumb {
           </div>
 
           <!-- Regional Economy -->
-          <div class="result-card bg-white border-2 border-slate-200 rounded-2xl p-5">
+          <div class="result-card glass-card rounded-2xl p-5 gradient-border-hover bg-white">
             <div class="flex items-center gap-1.5 mb-2">
               <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span class="text-xs text-text-sub font-medium">지역 경제 순환</span>
@@ -300,7 +504,7 @@ input[type="range"]::-moz-range-thumb {
           </div>
 
           <!-- Employment -->
-          <div class="result-card bg-white border-2 border-slate-200 rounded-2xl p-5">
+          <div class="result-card glass-card rounded-2xl p-5 gradient-border-hover bg-white">
             <div class="flex items-center gap-1.5 mb-2">
               <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
               <span class="text-xs text-text-sub font-medium">예상 고용 창출</span>
@@ -320,12 +524,25 @@ input[type="range"]::-moz-range-thumb {
           약 <span id="summaryUnits" class="font-bold">31세대</span> 추가 공급이 가능하며,
           지역 경제에 <span id="summaryCirc" class="font-bold text-green-600">350억원</span>이 순환됩니다.
         </div>
+
+        <!-- Share Button -->
+        <button id="shareBtn" onclick="shareResult()" class="mt-3 w-full flex items-center justify-center gap-2 bg-navy hover:bg-navy-light text-white font-semibold py-3 rounded-xl transition text-sm" aria-label="결과 공유하기">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+          결과 공유 (클립보드 복사)
+        </button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Section 2: Regional Comparison -->
+<!-- Wave divider -->
+<div class="wave-divider">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="#F1F5F9">
+    <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 2: Regional Comparison ===== -->
 <section id="comparison" class="py-12 sm:py-16 bg-bg-section fade-section">
   <div class="max-w-6xl mx-auto px-4">
     <div class="text-center mb-10">
@@ -339,35 +556,35 @@ input[type="range"]::-moz-range-thumb {
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-      <div class="bg-white rounded-xl p-5 border border-slate-200">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 gradient-border-hover">
         <div class="flex items-center gap-2 mb-2">
           <span class="w-3 h-3 rounded-full bg-blue-500"></span>
           <h4 class="font-bold text-navy">전북특별자치도</h4>
         </div>
         <p class="text-sm text-text-sub">최대 20%. 지역건설업체 참여비율에 따라 차등 적용. 비교적 체계적인 기준 보유.</p>
       </div>
-      <div class="bg-white rounded-xl p-5 border border-slate-200">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 gradient-border-hover">
         <div class="flex items-center gap-2 mb-2">
           <span class="w-3 h-3 rounded-full bg-blue-500"></span>
           <h4 class="font-bold text-navy">부산광역시</h4>
         </div>
         <p class="text-sm text-text-sub">최대 31%. 지역업체 하도급 비율 기준. 전국 최고 수준의 인센티브를 운영 중.</p>
       </div>
-      <div class="bg-white rounded-xl p-5 border border-slate-200">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 gradient-border-hover">
         <div class="flex items-center gap-2 mb-2">
           <span class="w-3 h-3 rounded-full bg-blue-500"></span>
           <h4 class="font-bold text-navy">대구광역시</h4>
         </div>
         <p class="text-sm text-text-sub">최대 43%. 복합 인센티브 포함. 단, 지역업체 참여 관련 단독 기준은 제한적.</p>
       </div>
-      <div class="bg-white rounded-xl p-5 border border-slate-200">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 gradient-border-hover">
         <div class="flex items-center gap-2 mb-2">
           <span class="w-3 h-3 rounded-full bg-slate-400"></span>
           <h4 class="font-bold text-navy">인천광역시</h4>
         </div>
         <p class="text-sm text-text-sub">최대 1%. 사실상 인센티브 미운영. 지역업체 보호장치가 부재한 상황.</p>
       </div>
-      <div class="bg-white rounded-xl p-5 border border-slate-200">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 gradient-border-hover">
         <div class="flex items-center gap-2 mb-2">
           <span class="w-3 h-3 rounded-full bg-blue-500"></span>
           <h4 class="font-bold text-navy">광주광역시</h4>
@@ -385,73 +602,185 @@ input[type="range"]::-moz-range-thumb {
   </div>
 </section>
 
-<!-- Section 3: Economic Impact Visualization -->
-<section id="impact" class="py-12 sm:py-16 bg-white fade-section">
+<!-- Wave divider -->
+<div class="wave-divider wave-divider-flip" style="background:#F1F5F9;">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="white">
+    <path d="M0,40 C300,0 500,80 700,30 C900,-10 1100,60 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 3: Before/After Comparison ===== -->
+<section id="beforeafter" class="py-12 sm:py-16 bg-white fade-section">
   <div class="max-w-6xl mx-auto px-4">
     <div class="text-center mb-10">
       <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 03</span>
+      <h2 class="text-2xl sm:text-3xl font-bold text-navy">제도 도입 전후 비교</h2>
+      <p class="text-text-sub mt-2">인센티브 제도 도입이 지역경제에 미치는 변화를 비교합니다</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-0 md:gap-0 relative">
+      <!-- Before -->
+      <div class="before-card rounded-2xl md:rounded-r-none p-6 sm:p-8 text-white">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">X</div>
+          <h3 class="text-lg font-bold">현행 (인센티브 없음)</h3>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-gray-300 mb-1">공사수익 역외유출</div>
+            <div class="text-2xl font-bold text-red-300">100%</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-red-400" style="width:100%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-gray-300 mb-1">지역 고용 효과</div>
+            <div class="text-2xl font-bold text-gray-400">최소</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-gray-500" style="width:10%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-gray-300 mb-1">지역 세수 기여</div>
+            <div class="text-2xl font-bold text-gray-400">미미</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-gray-500" style="width:5%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-gray-300 mb-1">시행사 추가 수익</div>
+            <div class="text-2xl font-bold text-gray-400">0원</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-gray-500" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center arrow -->
+      <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-14 h-14 rounded-full bg-point shadow-lg shadow-blue-500/30 items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </div>
+      <div class="flex md:hidden justify-center -my-3 relative z-10">
+        <div class="w-10 h-10 rounded-full bg-point shadow-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+        </div>
+      </div>
+
+      <!-- After -->
+      <div class="after-card rounded-2xl md:rounded-l-none p-6 sm:p-8 text-white">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">O</div>
+          <h3 class="text-lg font-bold">제안 (인센티브 적용)</h3>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-blue-200 mb-1">지역 경제 순환</div>
+            <div class="text-2xl font-bold text-green-300" id="baCirculation">350억원</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-green-400" id="baCircBar" style="width:70%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-blue-200 mb-1">지역 고용 창출</div>
+            <div class="text-2xl font-bold text-green-300" id="baJobs">700명</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-green-400" id="baJobsBar" style="width:35%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-blue-200 mb-1">지역 세수 기여</div>
+            <div class="text-2xl font-bold text-green-300" id="baTax">18억원</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-green-400" id="baTaxBar" style="width:20%"></div></div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4">
+            <div class="text-xs text-blue-200 mb-1">시행사 추가 수익</div>
+            <div class="text-2xl font-bold text-yellow-300" id="baRevenue">78억원</div>
+            <div class="progress-bar-track mt-2"><div class="progress-bar-fill bg-yellow-400" id="baRevBar" style="width:40%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Wave divider -->
+<div class="wave-divider">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="#F1F5F9">
+    <path d="M0,30 C150,60 350,0 500,40 C650,80 850,10 1000,50 C1100,70 1150,20 1200,30 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 4: Economic Impact Visualization ===== -->
+<section id="impact" class="py-12 sm:py-16 bg-bg-section fade-section">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 04</span>
       <h2 class="text-2xl sm:text-3xl font-bold text-navy">경제 효과 시각화</h2>
       <p class="text-text-sub mt-2">지역 자본 순환 구조와 경제 파급효과를 확인합니다</p>
     </div>
 
-    <!-- Circulation Diagram -->
-    <div class="bg-bg-section rounded-2xl p-6 sm:p-10 border border-slate-200 mb-10">
+    <!-- Circulation Diagram with SVG arrows -->
+    <div class="bg-white rounded-2xl p-6 sm:p-10 border border-slate-200 mb-10 shadow-sm">
       <h3 class="text-lg font-bold text-navy mb-6 text-center">지역 자본 순환 구조</h3>
       <div class="flex flex-wrap justify-center items-center gap-2 sm:gap-0">
-        <!-- Node 1 -->
         <div class="circ-node bg-navy text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-blue-200 mb-0.5">발주</div>
           <div class="text-sm font-bold">시행사</div>
           <div id="circNode1" class="text-xs text-blue-300 mt-1">500억</div>
         </div>
-        <div class="text-point text-2xl font-bold px-1 hidden sm:block">&rarr;</div>
-        <div class="text-point text-2xl font-bold py-1 sm:hidden">&darr;</div>
-        <!-- Node 2 -->
+        <!-- SVG Arrow -->
+        <div class="hidden sm:block px-1">
+          <svg width="40" height="24" viewBox="0 0 40 24"><line x1="0" y1="12" x2="30" y2="12" stroke="#3B82F6" stroke-width="3" class="flow-arrow"/><polygon points="30,6 40,12 30,18" fill="#3B82F6"/></svg>
+        </div>
+        <div class="sm:hidden py-1">
+          <svg width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#3B82F6" stroke-width="3" class="flow-arrow"/><polygon points="6,22 12,30 18,22" fill="#3B82F6"/></svg>
+        </div>
         <div class="circ-node bg-navy-light text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-blue-200 mb-0.5">시공</div>
           <div class="text-sm font-bold">원도급사</div>
           <div id="circNode2" class="text-xs text-blue-300 mt-1">500억</div>
         </div>
-        <div class="text-point text-2xl font-bold px-1 hidden sm:block">&rarr;</div>
-        <div class="text-point text-2xl font-bold py-1 sm:hidden">&darr;</div>
-        <!-- Node 3 -->
+        <div class="hidden sm:block px-1">
+          <svg width="40" height="24" viewBox="0 0 40 24"><line x1="0" y1="12" x2="30" y2="12" stroke="#3B82F6" stroke-width="3" class="flow-arrow"/><polygon points="30,6 40,12 30,18" fill="#3B82F6"/></svg>
+        </div>
+        <div class="sm:hidden py-1">
+          <svg width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#3B82F6" stroke-width="3" class="flow-arrow"/><polygon points="6,22 12,30 18,22" fill="#3B82F6"/></svg>
+        </div>
         <div class="circ-node bg-green-600 text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-green-200 mb-0.5">하도급</div>
           <div class="text-sm font-bold">지역 하도급사</div>
           <div id="circNode3" class="text-xs text-green-200 mt-1">350억</div>
         </div>
-        <div class="text-green-500 text-2xl font-bold px-1 hidden sm:block">&rarr;</div>
-        <div class="text-green-500 text-2xl font-bold py-1 sm:hidden">&darr;</div>
-        <!-- Node 4 -->
+        <div class="hidden sm:block px-1">
+          <svg width="40" height="24" viewBox="0 0 40 24"><line x1="0" y1="12" x2="30" y2="12" stroke="#22C55E" stroke-width="3" class="flow-arrow"/><polygon points="30,6 40,12 30,18" fill="#22C55E"/></svg>
+        </div>
+        <div class="sm:hidden py-1">
+          <svg width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#22C55E" stroke-width="3" class="flow-arrow"/><polygon points="6,22 12,30 18,22" fill="#22C55E"/></svg>
+        </div>
         <div class="circ-node bg-green-500 text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-green-100 mb-0.5">구매</div>
           <div class="text-sm font-bold">지역 자재/장비</div>
           <div id="circNode4" class="text-xs text-green-100 mt-1">175억</div>
         </div>
-        <div class="text-green-500 text-2xl font-bold px-1 hidden sm:block">&rarr;</div>
-        <div class="text-green-500 text-2xl font-bold py-1 sm:hidden">&darr;</div>
-        <!-- Node 5 -->
+        <div class="hidden sm:block px-1">
+          <svg width="40" height="24" viewBox="0 0 40 24"><line x1="0" y1="12" x2="30" y2="12" stroke="#22C55E" stroke-width="3" class="flow-arrow"/><polygon points="30,6 40,12 30,18" fill="#22C55E"/></svg>
+        </div>
+        <div class="sm:hidden py-1">
+          <svg width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#F59E0B" stroke-width="3" class="flow-arrow"/><polygon points="6,22 12,30 18,22" fill="#F59E0B"/></svg>
+        </div>
         <div class="circ-node bg-amber-500 text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-amber-100 mb-0.5">소비</div>
           <div class="text-sm font-bold">지역 소비</div>
           <div id="circNode5" class="text-xs text-amber-100 mt-1">88억</div>
         </div>
-        <div class="text-amber-500 text-2xl font-bold px-1 hidden sm:block">&rarr;</div>
-        <div class="text-amber-500 text-2xl font-bold py-1 sm:hidden">&darr;</div>
-        <!-- Node 6 -->
+        <div class="hidden sm:block px-1">
+          <svg width="40" height="24" viewBox="0 0 40 24"><line x1="0" y1="12" x2="30" y2="12" stroke="#F59E0B" stroke-width="3" class="flow-arrow"/><polygon points="30,6 40,12 30,18" fill="#F59E0B"/></svg>
+        </div>
+        <div class="sm:hidden py-1">
+          <svg width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#EF4444" stroke-width="3" class="flow-arrow"/><polygon points="6,22 12,30 18,22" fill="#EF4444"/></svg>
+        </div>
         <div class="circ-node bg-red-500 text-white rounded-xl px-4 py-3 text-center shadow-lg min-w-[110px]">
           <div class="text-xs text-red-100 mb-0.5">세수</div>
           <div class="text-sm font-bold">지역 세수</div>
           <div id="circNode6" class="text-xs text-red-100 mt-1">18억</div>
         </div>
       </div>
-      <p class="text-center text-xs text-text-sub mt-6">* 하도급 → 자재/장비: 약 50%, 자재/장비 → 소비: 약 50%, 소비 → 세수: 약 20% 가정</p>
+      <p class="text-center text-xs text-text-sub mt-6">* 하도급 -> 자재/장비: 약 50%, 자재/장비 -> 소비: 약 50%, 소비 -> 세수: 약 20% 가정</p>
     </div>
 
-    <!-- Gauge and Impact Cards -->
-    <div class="grid lg:grid-cols-2 gap-8">
+    <!-- Gauge, Donut Chart, and Impact Cards -->
+    <div class="grid lg:grid-cols-3 gap-8">
       <!-- Employment Gauge -->
-      <div class="bg-bg-section rounded-2xl p-6 sm:p-8 border border-slate-200 text-center">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 text-center shadow-sm">
         <h3 class="text-lg font-bold text-navy mb-4">고용 창출 게이지</h3>
         <div class="relative w-56 h-32 mx-auto mb-4">
           <svg viewBox="0 0 200 110" class="w-full">
@@ -463,71 +792,100 @@ input[type="range"]::-moz-range-thumb {
             <text x="100" y="105" text-anchor="middle" fill="#64748B" font-size="12" font-family="Noto Sans KR">명</text>
           </svg>
         </div>
-        <div class="flex justify-between text-xs text-text-sub px-8">
-          <span>0명</span><span>500명</span><span>1,000명</span><span>1,500명</span><span>2,000명</span>
+        <div class="flex justify-between text-xs text-text-sub px-4">
+          <span>0</span><span>500</span><span>1,000</span><span>1,500</span><span>2,000명</span>
         </div>
-        <p class="text-xs text-text-sub mt-4">건설업 평균 고용계수 기준 (5,000만원당 1명)</p>
+        <p class="text-xs text-text-sub mt-4">건설업 평균 고용계수 기준<br>(5,000만원당 1명)</p>
+      </div>
+
+      <!-- Donut Chart -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 text-center shadow-sm">
+        <h3 class="text-lg font-bold text-navy mb-4">파급효과 비율</h3>
+        <div class="relative" style="max-width:220px;margin:0 auto;">
+          <canvas id="donutChart"></canvas>
+        </div>
+        <div class="flex justify-center gap-4 mt-4 text-xs">
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> 직접</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> 간접</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> 유발</span>
+        </div>
       </div>
 
       <!-- Impact Summary Cards -->
       <div class="space-y-4">
         <h3 class="text-lg font-bold text-navy">경제 파급효과 요약</h3>
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white text-lg font-bold">1</div>
-            <div>
-              <h4 class="font-bold text-navy">직접 효과</h4>
-              <p class="text-xs text-text-sub">지역업체에 직접 투입되는 공사비</p>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">1</div>
+              <div>
+                <h4 class="font-bold text-navy text-sm">직접 효과</h4>
+                <p class="text-xs text-text-sub">지역업체 직접 투입 공사비</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="impactDirect" class="text-xl font-bold text-blue-600">350</span>
+              <span class="text-xs text-text-sub">억원</span>
             </div>
           </div>
-          <div class="text-right">
-            <span id="impactDirect" class="text-2xl font-bold text-blue-600">350</span>
-            <span class="text-sm text-text-sub">억원</span>
-          </div>
+          <div class="progress-bar-track"><div class="progress-bar-fill bg-blue-500" id="progressDirect" style="width:55%"></div></div>
         </div>
-        <div class="bg-green-50 border border-green-200 rounded-xl p-5">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center text-white text-lg font-bold">2</div>
-            <div>
-              <h4 class="font-bold text-navy">간접 효과</h4>
-              <p class="text-xs text-text-sub">지역 자재/장비 구매, 협력업체 매출</p>
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">2</div>
+              <div>
+                <h4 class="font-bold text-navy text-sm">간접 효과</h4>
+                <p class="text-xs text-text-sub">자재/장비, 협력업체 매출</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="impactIndirect" class="text-xl font-bold text-green-600">175</span>
+              <span class="text-xs text-text-sub">억원</span>
             </div>
           </div>
-          <div class="text-right">
-            <span id="impactIndirect" class="text-2xl font-bold text-green-600">175</span>
-            <span class="text-sm text-text-sub">억원</span>
-          </div>
+          <div class="progress-bar-track"><div class="progress-bar-fill bg-green-500" id="progressIndirect" style="width:28%"></div></div>
         </div>
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center text-white text-lg font-bold">3</div>
-            <div>
-              <h4 class="font-bold text-navy">유발 효과</h4>
-              <p class="text-xs text-text-sub">지역 소비 증가, 세수 확대, 일자리 창출</p>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">3</div>
+              <div>
+                <h4 class="font-bold text-navy text-sm">유발 효과</h4>
+                <p class="text-xs text-text-sub">소비 증가, 세수 확대, 일자리</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="impactInduced" class="text-xl font-bold text-amber-600">106</span>
+              <span class="text-xs text-text-sub">억원</span>
             </div>
           </div>
-          <div class="text-right">
-            <span id="impactInduced" class="text-2xl font-bold text-amber-600">106</span>
-            <span class="text-sm text-text-sub">억원</span>
-          </div>
+          <div class="progress-bar-track"><div class="progress-bar-fill bg-amber-500" id="progressInduced" style="width:17%"></div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Section 4: Incentive Tier Table -->
-<section id="tiertable" class="py-12 sm:py-16 bg-bg-section fade-section">
+<!-- Wave divider -->
+<div class="wave-divider wave-divider-flip" style="background:#F1F5F9;">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="white">
+    <path d="M0,50 C200,10 400,70 600,30 C800,-10 1000,60 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 5: Incentive Tier Table ===== -->
+<section id="tiertable" class="py-12 sm:py-16 bg-white fade-section">
   <div class="max-w-6xl mx-auto px-4">
     <div class="text-center mb-10">
-      <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 04</span>
+      <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 05</span>
       <h2 class="text-2xl sm:text-3xl font-bold text-navy">인센티브 구간 안내표</h2>
       <p class="text-text-sub mt-2">표준 인센티브 산정 기준표</p>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full text-sm" aria-label="인센티브 구간 안내표">
           <thead>
             <tr class="bg-navy text-white">
               <th class="px-4 sm:px-6 py-4 text-left font-semibold">구간</th>
@@ -538,56 +896,31 @@ input[type="range"]::-moz-range-thumb {
           </thead>
           <tbody>
             <tr id="tier0" class="tier-row border-b border-slate-100 hover:bg-slate-50">
-              <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-slate-300"></span>
-                  <span class="font-medium">미달</span>
-                </div>
-              </td>
+              <td class="px-4 sm:px-6 py-4"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-300"></span><span class="font-medium">미달</span></div></td>
               <td class="px-4 sm:px-6 py-4 font-semibold">30% 미만</td>
               <td class="px-4 sm:px-6 py-4 font-bold text-slate-400">0%</td>
               <td class="px-4 sm:px-6 py-4 text-text-sub hidden sm:table-cell">최소 참여 기준 미달, 인센티브 미부여</td>
             </tr>
             <tr id="tier1" class="tier-row border-b border-slate-100 hover:bg-slate-50">
-              <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
-                  <span class="font-medium">기본</span>
-                </div>
-              </td>
+              <td class="px-4 sm:px-6 py-4"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400"></span><span class="font-medium">기본</span></div></td>
               <td class="px-4 sm:px-6 py-4 font-semibold">30% ~ 50%</td>
               <td class="px-4 sm:px-6 py-4 font-bold text-yellow-600">3% ~ 5%</td>
               <td class="px-4 sm:px-6 py-4 text-text-sub hidden sm:table-cell">기본 참여 수준, 소규모 인센티브 제공</td>
             </tr>
             <tr id="tier2" class="tier-row border-b border-slate-100 hover:bg-slate-50">
-              <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                  <span class="font-medium">적극</span>
-                </div>
-              </td>
+              <td class="px-4 sm:px-6 py-4"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span><span class="font-medium">적극</span></div></td>
               <td class="px-4 sm:px-6 py-4 font-semibold">50% ~ 70%</td>
               <td class="px-4 sm:px-6 py-4 font-bold text-blue-600">7% ~ 10%</td>
               <td class="px-4 sm:px-6 py-4 text-text-sub hidden sm:table-cell">적극적 참여, 본격적 인센티브 적용</td>
             </tr>
             <tr id="tier3" class="tier-row border-b border-slate-100 hover:bg-slate-50">
-              <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                  <span class="font-medium">우수</span>
-                </div>
-              </td>
+              <td class="px-4 sm:px-6 py-4"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500"></span><span class="font-medium">우수</span></div></td>
               <td class="px-4 sm:px-6 py-4 font-semibold">70% ~ 80%</td>
               <td class="px-4 sm:px-6 py-4 font-bold text-green-600">12% ~ 15%</td>
               <td class="px-4 sm:px-6 py-4 text-text-sub hidden sm:table-cell">우수 참여, 상당한 용적률 보너스</td>
             </tr>
             <tr id="tier4" class="tier-row hover:bg-slate-50">
-              <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
-                  <span class="font-medium">최우수</span>
-                </div>
-              </td>
+              <td class="px-4 sm:px-6 py-4"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-600"></span><span class="font-medium">최우수</span></div></td>
               <td class="px-4 sm:px-6 py-4 font-semibold">80% ~ 100%</td>
               <td class="px-4 sm:px-6 py-4 font-bold text-emerald-600">15% ~ 20%</td>
               <td class="px-4 sm:px-6 py-4 text-text-sub hidden sm:table-cell">최우수 참여, 최대 인센티브 적용</td>
@@ -597,7 +930,7 @@ input[type="range"]::-moz-range-thumb {
       </div>
     </div>
 
-    <div class="mt-6 bg-white rounded-xl border border-slate-200 p-5 text-sm text-text-sub">
+    <div class="mt-6 bg-bg-section rounded-xl border border-slate-200 p-5 text-sm text-text-sub">
       <p class="flex items-start gap-2">
         <svg class="w-4 h-4 mt-0.5 text-point flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span>인센티브 용적률은 기준 인센티브에 지역 보정계수(광역시 1.0, 중소도시 1.1, 농어촌 1.2)를 곱하여 산정됩니다. 각 구간 내에서는 선형 보간법을 적용하여 세밀한 인센티브를 산정합니다.</span>
@@ -606,7 +939,94 @@ input[type="range"]::-moz-range-thumb {
   </div>
 </section>
 
-<!-- Footer -->
+<!-- Wave divider -->
+<div class="wave-divider">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="#F1F5F9">
+    <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Section 6: Policy Background ===== -->
+<section id="policy" class="py-12 sm:py-16 bg-bg-section fade-section">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="inline-block bg-point/10 text-point text-xs font-semibold px-3 py-1 rounded-full mb-3">SECTION 06</span>
+      <h2 class="text-2xl sm:text-3xl font-bold text-navy">왜 이 정책이 필요한가?</h2>
+      <p class="text-text-sub mt-2">현행 제도의 문제점과 정책 제안의 배경을 살펴봅니다</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+      <!-- Problem 1 -->
+      <div class="policy-card">
+        <div class="policy-icon bg-red-100">
+          <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-navy mb-2">지역 건설경기 침체</h3>
+        <p class="text-sm text-text-sub leading-relaxed mb-3">
+          대형 건설사 중심의 수주 구조로 지역 건설업체의 시장 참여가 갈수록 어려워지고 있습니다.
+        </p>
+        <div class="flex items-center gap-3 bg-red-50 rounded-lg p-3">
+          <div class="text-2xl font-bold text-red-500 count-up" data-target="70">0</div>
+          <div class="text-xs text-red-600">% 이상의 공사비가<br>역외로 유출</div>
+        </div>
+      </div>
+
+      <!-- Problem 2 -->
+      <div class="policy-card">
+        <div class="policy-icon bg-amber-100">
+          <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-navy mb-2">인센티브 제도의 파편화</h3>
+        <p class="text-sm text-text-sub leading-relaxed mb-3">
+          지자체마다 용적률 인센티브 기준이 제각각이어서 형평성과 실효성이 떨어집니다.
+        </p>
+        <div class="flex items-center gap-3 bg-amber-50 rounded-lg p-3">
+          <div class="text-2xl font-bold text-amber-500">1%~43%</div>
+          <div class="text-xs text-amber-600">지자체 간<br>최대 43배 격차</div>
+        </div>
+      </div>
+
+      <!-- Problem 3 -->
+      <div class="policy-card">
+        <div class="policy-icon bg-purple-100">
+          <svg class="w-7 h-7 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-navy mb-2">인구소멸과 악순환</h3>
+        <p class="text-sm text-text-sub leading-relaxed mb-3">
+          지역경제 침체 -> 일자리 감소 -> 인구유출 -> 세수감소 -> 투자축소의 악순환이 반복됩니다.
+        </p>
+        <div class="flex items-center gap-3 bg-purple-50 rounded-lg p-3">
+          <div class="text-2xl font-bold text-purple-500 count-up" data-target="118">0</div>
+          <div class="text-xs text-purple-600">개 시군구가<br>소멸위험지역</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key message -->
+    <div class="bg-gradient-to-r from-navy to-navy-light rounded-2xl p-6 sm:p-8 text-white text-center">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-sm text-blue-200 mb-2">본 제안의 핵심</div>
+        <p class="text-lg sm:text-xl font-bold leading-relaxed">
+          규제가 아닌 <span class="text-yellow-300">인센티브</span>로,<br class="sm:hidden">
+          파편화가 아닌 <span class="text-yellow-300">표준화</span>로
+        </p>
+        <p class="text-sm text-blue-200 mt-3 leading-relaxed">
+          시행사에게는 용적률 보너스를, 지역에게는 경제 순환을.<br>
+          모두가 이기는 상생형 정책 프레임워크를 제안합니다.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Wave divider to footer -->
+<div class="wave-divider wave-divider-flip" style="background:#F1F5F9;">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:40px;" fill="#1B3A5C">
+    <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<!-- ===== Footer ===== -->
 <footer class="bg-navy text-white py-10">
   <div class="max-w-6xl mx-auto px-4 text-center">
     <div class="mb-6 pb-6 border-b border-white/10">
@@ -628,25 +1048,21 @@ const baseFARInput = document.getElementById('baseFAR');
 const regionTypeSelect = document.getElementById('regionType');
 const correctionFactorSpan = document.getElementById('correctionFactor');
 
-// Results
 const resultFAR = document.getElementById('resultFAR');
 const resultUnits = document.getElementById('resultUnits');
 const resultRevenue = document.getElementById('resultRevenue');
 const resultCirculation = document.getElementById('resultCirculation');
 const resultJobs = document.getElementById('resultJobs');
 
-// Summary
 const summaryRate = document.getElementById('summaryRate');
 const summaryFAR = document.getElementById('summaryFAR');
 const summaryUnits = document.getElementById('summaryUnits');
 const summaryCirc = document.getElementById('summaryCirc');
 
-// Tier
 const tierBadge = document.getElementById('tierBadge');
 const tierDot = document.getElementById('tierDot');
 const tierText = document.getElementById('tierText');
 
-// Circulation Nodes
 const circNodes = [
   document.getElementById('circNode1'),
   document.getElementById('circNode2'),
@@ -656,19 +1072,17 @@ const circNodes = [
   document.getElementById('circNode6'),
 ];
 
-// Impact
 const impactDirect = document.getElementById('impactDirect');
 const impactIndirect = document.getElementById('impactIndirect');
 const impactInduced = document.getElementById('impactInduced');
 
-// Gauge
 const gaugeArc = document.getElementById('gaugeArc');
 const gaugeValue = document.getElementById('gaugeValue');
 
 // ========== Correction Factors ==========
 const correctionFactors = { metro: 1.0, midcity: 1.1, rural: 1.2 };
 
-// ========== Incentive Calculation ==========
+// ========== Incentive Calculation (EXACT same logic) ==========
 function getBaseIncentive(rate) {
   if (rate < 30) return 0;
   if (rate < 50) return 3 + (rate - 30) / 20 * 2;
@@ -693,29 +1107,25 @@ function animateValue(element, targetValue, decimals = 0, duration = 400) {
   if (animationMap.has(key)) {
     cancelAnimationFrame(animationMap.get(key));
   }
-
   const startValue = parseFloat(element.textContent.replace(/,/g, '')) || 0;
   const startTime = performance.now();
 
   function update(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
     const currentValue = startValue + (targetValue - startValue) * eased;
-
     if (decimals > 0) {
       element.textContent = currentValue.toFixed(decimals);
     } else {
       element.textContent = Math.round(currentValue).toLocaleString();
     }
-
     if (progress < 1) {
       animationMap.set(key, requestAnimationFrame(update));
     } else {
       animationMap.delete(key);
     }
   }
-
   animationMap.set(key, requestAnimationFrame(update));
 }
 
@@ -727,7 +1137,6 @@ function updateSliderColor(rate) {
   else if (rate < 70) color = '#3B82F6';
   else if (rate < 80) color = '#22C55E';
   else color = '#059669';
-
   const percent = rate;
   participationRate.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, #E2E8F0 ${percent}%, #E2E8F0 100%)`;
 }
@@ -751,7 +1160,6 @@ function updateGauge(jobs) {
   const ratio = Math.min(jobs / maxJobs, 1);
   const offset = totalArc * (1 - ratio);
   gaugeArc.style.strokeDashoffset = offset;
-
   let color;
   if (ratio < 0.25) color = '#94A3B8';
   else if (ratio < 0.5) color = '#3B82F6';
@@ -760,7 +1168,53 @@ function updateGauge(jobs) {
   gaugeArc.style.stroke = color;
 }
 
-// ========== Main Calculation ==========
+// ========== Donut Chart ==========
+let donutChart;
+function initDonutChart(direct, indirect, induced) {
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  donutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['직접 효과', '간접 효과', '유발 효과'],
+      datasets: [{
+        data: [direct, indirect, induced],
+        backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B'],
+        borderColor: ['#2563EB', '#16A34A', '#D97706'],
+        borderWidth: 2,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '60%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1B3A5C',
+          titleFont: { family: 'Noto Sans KR', size: 13 },
+          bodyFont: { family: 'Noto Sans KR', size: 12 },
+          callbacks: {
+            label: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? Math.round(context.raw / total * 100) : 0;
+              return context.label + ': ' + context.raw + '억원 (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateDonutChart(direct, indirect, induced) {
+  if (donutChart) {
+    donutChart.data.datasets[0].data = [direct, indirect, induced];
+    donutChart.update();
+  }
+}
+
+// ========== Main Calculation (EXACT same logic) ==========
 function calculate() {
   const rate = parseInt(participationRate.value);
   const totalCost = parseFloat(totalCostInput.value) || 500;
@@ -768,50 +1222,38 @@ function calculate() {
   const regionType = regionTypeSelect.value;
   const cf = correctionFactors[regionType];
 
-  // Update displayed values
   rateValue.textContent = rate;
   correctionFactorSpan.textContent = cf.toFixed(1);
-
-  // Slider color
   updateSliderColor(rate);
 
-  // Tier badge
   const tierInfo = getTierInfo(rate);
-  tierBadge.className = `mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${tierInfo.bgClass} ${tierInfo.textClass}`;
+  tierBadge.className = `mt-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${tierInfo.bgClass} ${tierInfo.textClass}`;
   tierDot.className = `w-2.5 h-2.5 rounded-full ${tierInfo.dotClass}`;
   tierText.textContent = tierInfo.label;
-
-  // Highlight tier table
   highlightTier(tierInfo.tier);
 
-  // Calculate incentive
   const baseIncentive = getBaseIncentive(rate);
   const incentiveFAR = baseIncentive * cf;
 
-  // Derived values
-  // Estimate site area from total cost (rough: totalCost * 0.01 = site area in 100s of m2)
-  const estimatedSiteArea = totalCost * 10; // approximate m2 (totalCost in 억, rough factor)
+  const estimatedSiteArea = totalCost * 10;
   const additionalFloorArea = estimatedSiteArea * incentiveFAR / 100;
   const additionalUnits = Math.round(additionalFloorArea / 84);
-  const avgSalePrice = 2.5; // 억
+  const avgSalePrice = 2.5;
   const additionalRevenue = Math.round(additionalUnits * avgSalePrice);
   const localCirculation = Math.round(totalCost * rate / 100);
   const jobs = Math.round(localCirculation / 0.5);
 
-  // Animate results
   animateValue(resultFAR, incentiveFAR, 1);
   animateValue(resultUnits, additionalUnits);
   animateValue(resultRevenue, additionalRevenue);
   animateValue(resultCirculation, localCirculation);
   animateValue(resultJobs, jobs);
 
-  // Summary
   summaryRate.textContent = rate + '%';
   summaryFAR.textContent = '+' + incentiveFAR.toFixed(1) + '%';
   summaryUnits.textContent = additionalUnits.toLocaleString() + '세대';
   summaryCirc.textContent = localCirculation.toLocaleString() + '억원';
 
-  // Circulation nodes
   const node3Val = localCirculation;
   const node4Val = Math.round(node3Val * 0.5);
   const node5Val = Math.round(node4Val * 0.5);
@@ -823,14 +1265,116 @@ function calculate() {
   circNodes[4].textContent = node5Val.toLocaleString() + '억';
   circNodes[5].textContent = node6Val.toLocaleString() + '억';
 
-  // Impact cards
-  animateValue(impactDirect, localCirculation);
-  animateValue(impactIndirect, node4Val);
-  animateValue(impactInduced, node4Val + node5Val + node6Val);
+  const directEffect = localCirculation;
+  const indirectEffect = node4Val;
+  const inducedEffect = node4Val + node5Val + node6Val;
+
+  animateValue(impactDirect, directEffect);
+  animateValue(impactIndirect, indirectEffect);
+  animateValue(impactInduced, inducedEffect);
+
+  // Progress bars
+  const totalEffect = directEffect + indirectEffect + inducedEffect;
+  if (totalEffect > 0) {
+    document.getElementById('progressDirect').style.width = (directEffect / totalEffect * 100) + '%';
+    document.getElementById('progressIndirect').style.width = (indirectEffect / totalEffect * 100) + '%';
+    document.getElementById('progressInduced').style.width = (inducedEffect / totalEffect * 100) + '%';
+  }
+
+  // Donut chart
+  updateDonutChart(directEffect, indirectEffect, inducedEffect);
 
   // Gauge
   animateValue(gaugeValue, jobs);
   updateGauge(jobs);
+
+  // Before/After section
+  document.getElementById('baCirculation').textContent = localCirculation.toLocaleString() + '억원';
+  document.getElementById('baJobs').textContent = jobs.toLocaleString() + '명';
+  document.getElementById('baTax').textContent = node6Val.toLocaleString() + '억원';
+  document.getElementById('baRevenue').textContent = additionalRevenue.toLocaleString() + '억원';
+
+  const maxCirc = 5000;
+  document.getElementById('baCircBar').style.width = Math.min(localCirculation / maxCirc * 100, 100) + '%';
+  document.getElementById('baJobsBar').style.width = Math.min(jobs / 4000 * 100, 100) + '%';
+  document.getElementById('baTaxBar').style.width = Math.min(node6Val / 100 * 100, 100) + '%';
+  document.getElementById('baRevBar').style.width = Math.min(additionalRevenue / 500 * 100, 100) + '%';
+}
+
+// ========== Preset Scenarios ==========
+function applyPreset(cost, far, region, rate) {
+  totalCostInput.value = cost;
+  baseFARInput.value = far;
+  regionTypeSelect.value = region;
+  participationRate.value = rate;
+
+  // Highlight active preset
+  document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  calculate();
+
+  // Smooth scroll to results on mobile
+  if (window.innerWidth < 768) {
+    document.getElementById('summaryBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// ========== Share Result ==========
+function shareResult() {
+  const rate = participationRate.value;
+  const far = resultFAR.textContent;
+  const units = resultUnits.textContent;
+  const revenue = resultRevenue.textContent;
+  const circ = resultCirculation.textContent;
+  const jobs = resultJobs.textContent;
+  const region = regionTypeSelect.options[regionTypeSelect.selectedIndex].text.split(' ')[0];
+  const cost = totalCostInput.value;
+
+  const text = `[지역 상생형 용적률 인센티브 시뮬레이션 결과]\n` +
+    `---------------------------------------\n` +
+    `조건: ${region} | 공사비 ${cost}억원 | 참여비율 ${rate}%\n` +
+    `---------------------------------------\n` +
+    `인센티브 용적률: +${far}%\n` +
+    `추가 세대수: 약 ${units}세대\n` +
+    `추가 분양수익: 약 ${revenue}억원\n` +
+    `지역 경제 순환: ${circ}억원\n` +
+    `예상 고용 창출: 약 ${jobs}명\n` +
+    `---------------------------------------\n` +
+    `시뮬레이터: 건설업 생산체계 정책 아이디어 공모전`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('시뮬레이션 결과가 클립보드에 복사되었습니다');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('시뮬레이션 결과가 클립보드에 복사되었습니다');
+  } catch (e) {
+    showToast('복사에 실패했습니다. 직접 복사해 주세요.');
+  }
+  document.body.removeChild(ta);
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
 // ========== Event Listeners ==========
@@ -850,67 +1394,33 @@ function initChart() {
       datasets: [{
         label: '최대 인센티브 (%)',
         data: [1, 10, 20, 20, 31, 43],
-        backgroundColor: [
-          '#CBD5E1',
-          '#3B82F6',
-          '#3B82F6',
-          '#F97316',
-          '#3B82F6',
-          '#3B82F6',
-        ],
-        borderColor: [
-          '#94A3B8',
-          '#2563EB',
-          '#2563EB',
-          '#EA580C',
-          '#2563EB',
-          '#2563EB',
-        ],
-        borderWidth: 2,
-        borderRadius: 6,
-        borderDash: [0, 0, 0, 0, 0, 0],
-        barPercentage: 0.7,
+        backgroundColor: ['#CBD5E1','#3B82F6','#3B82F6','#F97316','#3B82F6','#3B82F6'],
+        borderColor: ['#94A3B8','#2563EB','#2563EB','#EA580C','#2563EB','#2563EB'],
+        borderWidth: 2, borderRadius: 6, barPercentage: 0.7,
       }]
     },
     options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor: '#1B3A5C',
           titleFont: { family: 'Noto Sans KR', size: 13 },
           bodyFont: { family: 'Noto Sans KR', size: 12 },
-          callbacks: {
-            label: function(context) {
-              return '최대 인센티브: ' + context.raw + '%';
-            }
-          }
+          callbacks: { label: function(context) { return '최대 인센티브: ' + context.raw + '%'; } }
         }
       },
       scales: {
         x: {
-          beginAtZero: true,
-          max: 50,
-          title: {
-            display: true,
-            text: '최대 인센티브 용적률 (%)',
-            font: { family: 'Noto Sans KR', size: 12, weight: '600' },
-            color: '#1B3A5C'
-          },
-          ticks: {
-            font: { family: 'Noto Sans KR' },
-            callback: function(value) { return value + '%'; }
-          },
+          beginAtZero: true, max: 50,
+          title: { display: true, text: '최대 인센티브 용적률 (%)', font: { family: 'Noto Sans KR', size: 12, weight: '600' }, color: '#1B3A5C' },
+          ticks: { font: { family: 'Noto Sans KR' }, callback: function(value) { return value + '%'; } },
           grid: { color: '#F1F5F9' }
         },
         y: {
           ticks: {
             font: { family: 'Noto Sans KR', size: 13, weight: '500' },
-            color: function(context) {
-              return context.tick.label === '제안 표준안' ? '#EA580C' : '#1E293B';
-            }
+            color: function(context) { return context.tick.label === '제안 표준안' ? '#EA580C' : '#1E293B'; }
           },
           grid: { display: false }
         }
@@ -919,7 +1429,7 @@ function initChart() {
     plugins: [{
       id: 'barLabels',
       afterDatasetsDraw(chart) {
-        const { ctx: c, data, scales: { x } } = chart;
+        const { ctx: c, data } = chart;
         chart.getDatasetMeta(0).data.forEach((bar, i) => {
           const value = data.datasets[0].data[i];
           c.save();
@@ -935,23 +1445,113 @@ function initChart() {
   });
 }
 
-// ========== Scroll Fade-in ==========
+// ========== Scroll Animations ==========
 function initScrollAnimations() {
-  const observer = new IntersectionObserver((entries) => {
+  // Fade-in sections
+  const fadeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.fade-section').forEach(el => fadeObserver.observe(el));
 
-  document.querySelectorAll('.fade-section').forEach(el => observer.observe(el));
+  // Count-up on scroll
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.dataset.counted) {
+        entry.target.dataset.counted = 'true';
+        const target = parseInt(entry.target.dataset.target);
+        const duration = 1500;
+        const startTime = performance.now();
+        function updateCount(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          entry.target.textContent = Math.round(target * eased);
+          if (progress < 1) requestAnimationFrame(updateCount);
+        }
+        requestAnimationFrame(updateCount);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+}
+
+// ========== Sticky Navigation ==========
+function initStickyNav() {
+  const nav = document.getElementById('stickyNav');
+  const header = document.querySelector('header');
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  // Show/hide sticky nav
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        nav.classList.add('visible');
+      } else {
+        nav.classList.remove('visible');
+      }
+    });
+  }, { threshold: 0, rootMargin: '-100px 0px 0px 0px' });
+  navObserver.observe(header);
+
+  // Highlight active section
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          if (link.dataset.section === id) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -50% 0px' });
+  sections.forEach(section => sectionObserver.observe(section));
+}
+
+// ========== Mobile CTA visibility ==========
+function initMobileCta() {
+  const cta = document.getElementById('mobileCta');
+  const calculator = document.getElementById('calculator');
+  if (!cta || !calculator) return;
+
+  const ctaObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (window.innerWidth <= 768) {
+        cta.style.display = entry.isIntersecting ? 'none' : 'block';
+      }
+    });
+  }, { threshold: 0.1 });
+  ctaObserver.observe(calculator);
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) cta.style.display = 'none';
+  });
 }
 
 // ========== Init ==========
 document.addEventListener('DOMContentLoaded', () => {
   initChart();
+
+  // Init donut chart with defaults
+  const rate = parseInt(participationRate.value);
+  const totalCost = parseFloat(totalCostInput.value) || 500;
+  const localCirc = Math.round(totalCost * rate / 100);
+  const n4 = Math.round(localCirc * 0.5);
+  const n5 = Math.round(n4 * 0.5);
+  const n6 = Math.round(n5 * 0.2);
+  initDonutChart(localCirc, n4, n4 + n5 + n6);
+
   initScrollAnimations();
+  initStickyNav();
+  initMobileCta();
   calculate();
 });
 </script>
